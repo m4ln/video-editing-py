@@ -1,7 +1,7 @@
 import cv2
 import numpy as np
 import os
-
+import random
 
 class YOLOVideoDetector:
     def __init__(self, model_type="yolov3", confidence_threshold=0.5, nms_threshold=0.4):
@@ -78,12 +78,46 @@ class YOLOVideoDetector:
         # Non-max suppression
         indexes = cv2.dnn.NMSBoxes(boxes, confidences, self.confidence_threshold, self.nms_threshold)
 
-        # Draw bounding boxes
         for i in range(len(boxes)):
             if i in indexes:
                 x, y, w, h = boxes[i]
                 label = str(self.classes[class_ids[i]])
-                cv2.rectangle(frame, (x, y), (x + w, y + h), (255, 0, 0), 2)
+
+                # Draw a few larger boxes
+                num_large_boxes = random.randint(2, 3)
+                for lb in range(num_large_boxes):
+                    # Large box size and position (vary a bit, allow to go a bit outside)
+                    lw = random.randint(int(w * 0.5), int(w * 0.9))
+                    lh = random.randint(int(h * 0.5), int(h * 0.9))
+                    lx = random.randint(x - int(w * 0.1), x + w - int(lw * 0.9))
+                    ly = random.randint(y - int(h * 0.1), y + h - int(lh * 0.9))
+                    # color = (
+                    #     random.randint(120, 255),
+                    #     random.randint(120, 255),
+                    #     random.randint(120, 255)
+                    # )
+                    color = (0, 0, 0)
+                    cv2.rectangle(frame, (lx, ly), (lx + lw, ly + lh), color, 2)
+
+                    # Draw smaller, overlapping boxes inside (and a bit outside) the large box
+                    num_small_boxes = random.randint(3, 6)
+                    for sb in range(num_small_boxes):
+                        sw = random.randint(int(lw * 0.2), int(lw * 0.5))
+                        sh = random.randint(int(lh * 0.2), int(lh * 0.5))
+                        # Allow small boxes to overlap and go a bit outside the large box
+                        sx = random.randint(lx - int(sw * 0.2), lx + lw - int(sw * 0.8))
+                        sy = random.randint(ly - int(sh * 0.2), ly + lh - int(sh * 0.8))
+                        # scolor = (
+                        #     min(max(color[0] + random.randint(-40, 40), 0), 255),
+                        #     min(max(color[1] + random.randint(-40, 40), 0), 255),
+                        #     min(max(color[2] + random.randint(-40, 40), 0), 255)
+                        # )
+                        scolor = (0, 0, 0)
+                        # Flicker effect: show/hide some boxes
+                        if random.random() > 0.3:
+                            cv2.rectangle(frame, (sx, sy), (sx + sw, sy + sh), scolor, 1)
+
+                # Optionally, still show the label
                 cv2.putText(frame, label, (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
 
         return frame
@@ -116,4 +150,4 @@ class YOLOVideoDetector:
 
 if __name__ == "__main__":
     detector = YOLOVideoDetector(model_type="yolov3")
-    detector.process_video("mov00.mov")
+    detector.process_video("mov04.mov")
