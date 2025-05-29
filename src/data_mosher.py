@@ -4,12 +4,10 @@ import os
 import argparse
 import subprocess
 
-
-
 parser = argparse.ArgumentParser()
-parser.add_argument('--video', type=str, default='mov00.mov', help='File to be moshed')
-parser.add_argument('--start_frame', '-s', default=40, type=int, help='start frame of the mosh')
-parser.add_argument('--end_frame', '-e', default=-90, type=int, help='end frame of the mosh')
+parser.add_argument('--video', type=str, default='hand.mov', help='File to be moshed')
+parser.add_argument('--start_frame', '-s', default=10, type=int, help='start frame of the mosh')
+parser.add_argument('--end_frame', '-e', default=100, type=int, help='end frame of the mosh')
 parser.add_argument('--fps', '-f', default=30, type=int, help='fps to convert initial video to')
 parser.add_argument('--save_path', type=str, default='out', help="Path to save the processed video.")
 parser.add_argument('--delta', '-d', default=0, type=int, help='number of delta frames to repeat')
