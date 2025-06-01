@@ -4,8 +4,6 @@ import os
 import argparse
 import subprocess
 
-# ...existing imports...
-
 class DataMosher:
     def __init__(self, video, start_frames, end_frames, fps, save_path, delta):
         self.video = video
