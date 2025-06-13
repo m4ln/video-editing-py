@@ -131,9 +131,9 @@ class DataMosher:
         iframe = bytes.fromhex('0001B0')
         pframe = bytes.fromhex('0001B6')
 
-        n_video_frames = len(
+        self.n_video_frames = len(
             [frame for frame in frames if frame[5:8] == iframe or frame[5:8] == pframe])
-        end_frame = self.end_frame if self.end_frame >= 0 else n_video_frames
+        end_frame = self.end_frame if self.end_frame >= 0 else self.n_video_frames
 
         def write_frame(frame):
             self.out_file.write(frame_start + frame)
@@ -211,7 +211,7 @@ class DataMosher:
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--video', type=str,
-                        default='mov03.mov', help='File to be moshed')
+                        default='hand.mov', help='File to be moshed')
     parser.add_argument('--start_frames', nargs='+', type=int,
                         required=True, help='List of start frames')
     parser.add_argument('--end_frames', nargs='+', type=int,
@@ -241,6 +241,10 @@ def main():
             mosher.results_dir, f"{args.save_path}_moshed.mp4"))
     else:
         mosher.process_all_ranges()
+
+    # print number of total frames
+    n_frames = mosher.n_video_frames
+    print(f"Total frames count: {n_frames}")
 
 
 if __name__ == "__main__":
