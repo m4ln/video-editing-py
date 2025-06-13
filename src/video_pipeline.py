@@ -4,6 +4,7 @@ import os
 
 from yolo_detector import YOLOVideoDetector
 
+
 class ViedeoPipeline:
     def __init__(self, video_path):
         self.video_path = video_path
@@ -13,8 +14,9 @@ class ViedeoPipeline:
         self.frame_skip = 2  # Default frame skip value
 
     def add_yolo_detector(self, model_type="yolov3", confidence_threshold=0.5, nms_threshold=0.4):
-        self.detector = YOLOVideoDetector(model_type, confidence_threshold, nms_threshold)
-    
+        self.detector = YOLOVideoDetector(
+            model_type, confidence_threshold, nms_threshold)
+
     def add_data_mosher():
         pass
 
@@ -25,7 +27,7 @@ class ViedeoPipeline:
 
     def process_video(self, frame_skip=2):
         self.frame_skip = frame_skip
-    
+
         cap = cv2.VideoCapture(self.video_path)
 
         if not cap.isOpened():
@@ -41,15 +43,15 @@ class ViedeoPipeline:
             frame_count += 1
             if frame_count % self.frame_skip != 0:  # Skip frames based on frame_skip
                 continue
-            
+
             # Process the frame
             if self.detector is not None:
                 # Use the detector to process the frame
                 frame = self.detector.process_frame(frame)
             if self.datamosher is not None:
-                # Use the datamosher to process the frame   
+                # Use the datamosher to process the frame
                 frame = self.datamosher.process_frame(frame)
-            
+
             cv2.imshow("Video", frame)
 
             if cv2.waitKey(1) & 0xFF == ord('q'):
@@ -60,10 +62,11 @@ class ViedeoPipeline:
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Process a video using different methods.")
+    parser = argparse.ArgumentParser(
+        description="Process a video using different methods.")
     parser.add_argument("--video", type=str, default="mov04.mov",
                         help="Video file to process.")
-    parser.add_argument("--frame_skip", type=int, default=2,    
+    parser.add_argument("--frame_skip", type=int, default=2,
                         help="Number of frames to skip during processing.")
     parser.add_argument("--save_path", type=str, default="",
                         help="Path to save the processed video.")
@@ -73,7 +76,7 @@ if __name__ == "__main__":
                         help="Model type to use for detection.")
     parser.add_argument("--confidence", type=float, default=0.5,
                         help="Confidence threshold for detections.")
-    parser.add_argument("--nms", type=float, default=0.4,
+    parser.add_argument("--nms", type=float, default=0,
                         help="Non-Maximum Suppression threshold.")
     parser.add_argument("--datamoshing", action='store_true',
                         help="Enable datamoshing effect.")
@@ -88,10 +91,12 @@ if __name__ == "__main__":
 
     video_path = os.path.join(data_dir, args.video)
     if not os.path.exists(video_path):
-        raise FileNotFoundError(f"Video file {args.video} does not exist in the data directory.")
+        raise FileNotFoundError(
+            f"Video file {args.video} does not exist in the data directory.")
     pipeline = ViedeoPipeline(video_path)
     if args.yolo:
-        pipeline.add_yolo_detector(model_type=args.model, confidence_threshold=args.confidence, nms_threshold=args.nms)
+        pipeline.add_yolo_detector(
+            model_type=args.model, confidence_threshold=args.confidence, nms_threshold=args.nms)
     if args.save_path:
         pipeline.set_save_path(args.save_path)
     pipeline.process_video(frame_skip=args.frame_skip)
