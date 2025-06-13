@@ -5,20 +5,16 @@ import os
 from yolo_detector import YOLOVideoDetector
 
 
-class ViedeoPipeline:
+class VideoPipeline:
     def __init__(self, video_path):
         self.video_path = video_path
         self.detector = None
-        self.datamosher = None
         self.save_path = None
         self.frame_skip = 2  # Default frame skip value
 
     def add_yolo_detector(self, model_type="yolov3", confidence_threshold=0.5, nms_threshold=0.4):
         self.detector = YOLOVideoDetector(
             model_type, confidence_threshold, nms_threshold)
-
-    def add_data_mosher():
-        pass
 
     def set_save_path(self, save_path):
         self.save_path = save_path
@@ -48,9 +44,6 @@ class ViedeoPipeline:
             if self.detector is not None:
                 # Use the detector to process the frame
                 frame = self.detector.process_frame(frame)
-            if self.datamosher is not None:
-                # Use the datamosher to process the frame
-                frame = self.datamosher.process_frame(frame)
 
             cv2.imshow("Video", frame)
 
@@ -74,12 +67,10 @@ if __name__ == "__main__":
                         help="Enable YOLO object detection.")
     parser.add_argument("--model", type=str, default="yolov3", choices=["yolov3", "yolov4-tiny"],
                         help="Model type to use for detection.")
-    parser.add_argument("--confidence", type=float, default=0.5,
+    parser.add_argument("--confidence", type=float, default=0.1,
                         help="Confidence threshold for detections.")
-    parser.add_argument("--nms", type=float, default=0,
+    parser.add_argument("--nms", type=float, default=0.4,
                         help="Non-Maximum Suppression threshold.")
-    parser.add_argument("--datamoshing", action='store_true',
-                        help="Enable datamoshing effect.")
     args = parser.parse_args()
 
     # Ensure the video directory and file exist
@@ -93,7 +84,7 @@ if __name__ == "__main__":
     if not os.path.exists(video_path):
         raise FileNotFoundError(
             f"Video file {args.video} does not exist in the data directory.")
-    pipeline = ViedeoPipeline(video_path)
+    pipeline = VideoPipeline(video_path)
     if args.yolo:
         pipeline.add_yolo_detector(
             model_type=args.model, confidence_threshold=args.confidence, nms_threshold=args.nms)

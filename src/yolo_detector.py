@@ -5,7 +5,7 @@ import random
 
 
 class YOLOVideoDetector:
-    def __init__(self, model_type="yolov3", confidence_threshold=0.1, nms_threshold=0):
+    def __init__(self, model_type="yolov3", confidence_threshold=0.1, nms_threshold=0.4):
         self.model_path = os.path.join(
             os.path.dirname(__file__), '..', 'models')
         self.data_dir = os.path.join(os.path.dirname(__file__), '..', 'data')
