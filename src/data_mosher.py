@@ -59,29 +59,13 @@ class DataMosher:
             os.remove(self.output_avi)
 
     def process_all_ranges(self):
-        self.convert_to_avi()
-        self.open_files()
-        in_file_bytes = self.in_file.read()
-        frame_start = bytes.fromhex('30306463')
-        frames = in_file_bytes.split(frame_start)
-        self.out_file = open(os.path.join(
-            self.results_dir, f"{self.save_path}_moshed.avi"), 'wb')
-        self.out_file.write(frames[0])
-        frames = frames[1:]
-
-        iframe = bytes.fromhex('0001B0')
-        pframe = bytes.fromhex('0001B6')
-
-        # Prepare a list of (start, end) tuples
-        ranges = list(zip(self.start_frames, self.end_frames))
-
         def in_any_range(idx):
             return any(start <= idx < end for start, end in ranges)
 
         def write_frame(frame):
             self.out_file.write(frame_start + frame)
 
-        def mosh_delta_repeat(frames, n_repeat, ranges):
+        def mosh_delta_repeat(frames, n_repeat):
             repeat_frames = []
             repeat_index = 0
             for idx, frame in enumerate(frames):
@@ -100,16 +84,32 @@ class DataMosher:
                 else:
                     write_frame(frame)
 
-        def mosh_iframe_removal(frames, ranges):
+        def mosh_iframe_removal(frames):
             for idx, frame in enumerate(frames):
                 if in_any_range(idx) and frame[5:8] == iframe:
                     continue  # Remove I-frames in the specified ranges
                 write_frame(frame)
 
+        self.convert_to_avi()
+        self.open_files()
+        in_file_bytes = self.in_file.read()
+        frame_start = bytes.fromhex('30306463')
+        frames = in_file_bytes.split(frame_start)
+        self.out_file = open(os.path.join(
+            self.results_dir, f"{self.save_path}_moshed.avi"), 'wb')
+        self.out_file.write(frames[0])
+        frames = frames[1:]
+
+        iframe = bytes.fromhex('0001B0')
+        pframe = bytes.fromhex('0001B6')
+
+        # Prepare a list of (start, end) tuples
+        ranges = list(zip(self.start_frames, self.end_frames))
+
         if self.delta:
-            mosh_delta_repeat(frames, self.delta, ranges)
+            mosh_delta_repeat(frames, self.delta)
         else:
-            mosh_iframe_removal(frames, ranges)
+            mosh_iframe_removal(frames)
 
         self.out_file.close()
         # Export the final video
@@ -126,24 +126,6 @@ class DataMosher:
         print(f"Final video saved to {final_output}")
 
     def process_segment(self, start_frame, end_frame, output_video):
-        self.start_frame = start_frame
-        self.end_frame = end_frame
-        self.output_video = output_video
-        self.convert_to_avi()
-        self.open_files()
-        in_file_bytes = self.in_file.read()
-        frame_start = bytes.fromhex('30306463')
-        frames = in_file_bytes.split(frame_start)
-        self.out_file.write(frames[0])
-        frames = frames[1:]
-
-        iframe = bytes.fromhex('0001B0')
-        pframe = bytes.fromhex('0001B6')
-
-        self.n_video_frames = len(
-            [frame for frame in frames if frame[5:8] == iframe or frame[5:8] == pframe])
-        end_frame = self.end_frame if self.end_frame >= 0 else self.n_video_frames
-
         def write_frame(frame):
             self.out_file.write(frame_start + frame)
 
@@ -171,6 +153,24 @@ class DataMosher:
                     repeat_index = (repeat_index + 1) % n_repeat
                 else:
                     write_frame(frame)
+
+        self.start_frame = start_frame
+        self.end_frame = end_frame
+        self.output_video = output_video
+        self.convert_to_avi()
+        self.open_files()
+        in_file_bytes = self.in_file.read()
+        frame_start = bytes.fromhex('30306463')
+        frames = in_file_bytes.split(frame_start)
+        self.out_file.write(frames[0])
+        frames = frames[1:]
+
+        iframe = bytes.fromhex('0001B0')
+        pframe = bytes.fromhex('0001B6')
+
+        self.n_video_frames = len(
+            [frame for frame in frames if frame[5:8] == iframe or frame[5:8] == pframe])
+        end_frame = self.end_frame if self.end_frame >= 0 else self.n_video_frames
 
         if self.delta:
             mosh_delta_repeat(self.delta)
@@ -258,8 +258,9 @@ def main():
         save_path=args.save_path,
         delta=args.delta
     )
-    fps = mosher.get_fps()  # Ensure the video FPS is set correctly
-    print(f"Video FPS: {fps}")
+
+    # fps check
+    print(f"Video FPS: {mosher.get_fps()}")
 
     # data moshing
     mosher.process_video()
