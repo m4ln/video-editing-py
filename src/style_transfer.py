@@ -10,7 +10,8 @@ def parse_args():
                         help='file containing vector data to transfer', required=False)
     parser.add_argument('-e', type=str, default='', dest='extract_from',
                         help='video to extract motion vector data from', required=False)
-    parser.add_argument('-t', default='', type=str, dest='transfer_to', help='video to transfer motion vector data to')
+    parser.add_argument('-t', default='', type=str, dest='transfer_to',
+                        help='video to transfer motion vector data to')
     parser.add_argument(default='', type=str, dest='output',
                         help='output file either for the final video, or for the vector data')
     return parser.parse_args().__dict__
@@ -23,6 +24,12 @@ if __name__ == '__main__':
     extract_from = args['extract_from']
     transfer_to = args['transfer_to']
     output = args['output']
+
+    # define output path
+    output_name = output.split('.')[0]
+    output_path = f'./results/{output_name}'
+    output_file_tmp = f'{output_path}_tmp.mp4'
+    output_file_final = f'{output_path}.mp4'
 
     # check that either extract_from or vector_file is given
     if not ((extract_from == '') ^ (vector_file == '')):
@@ -37,7 +44,7 @@ if __name__ == '__main__':
 
         # if we only have to extract the vectors, write to file and exit
         if transfer_to == '':
-            with open(output, 'w') as f:
+            with open(output_file_tmp, 'w') as f:
                 json.dump(vectors, f)
             exit(0)
     elif vector_file:
@@ -50,4 +57,11 @@ if __name__ == '__main__':
             vectors = json.load(f)
 
     # step 2: transfer vector data to file
-    apply_vectors(vectors, transfer_to, output)
+    apply_vectors(vectors, transfer_to, output_file_tmp)
+
+    # step 3: convert mpg to mp4
+    subprocess.call(
+        f'ffmpeg -i {output_file_tmp} {output_file_final}', shell=True)
+
+    # remove temporary file
+    os.remove(output_file_tmp)
