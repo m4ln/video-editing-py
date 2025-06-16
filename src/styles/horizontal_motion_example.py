@@ -6,6 +6,6 @@ def mosh_frames(frames):
         for row in frame:
             for col in row:
                 # col contains the horizontal and vertical components of the vector
-                col[0] = 0
+                col[1] = 0
 
     return frames

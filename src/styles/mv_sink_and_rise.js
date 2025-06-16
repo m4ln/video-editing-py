@@ -18,8 +18,8 @@ export function glitch_frame(frame) {
 
             // THIS IS WHERE THE MAGIC HAPPENS
 
-            mv[0] = 0; // this sets the horizontal motion vector to zero
-            // mv[1] = 0; // you could also change the vertical motion vector
+            // mv[0] = 0; // this sets the horizontal motion vector to zero
+            mv[1] = 0; // you could also change the vertical motion vector
         }
     }
 }
