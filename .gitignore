@@ -3,7 +3,4 @@ models/
 results/
 __pycache__/
 .DS_Store
-ffedit
-ffgac
-fflive
-qjs
+bin/
