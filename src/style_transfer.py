@@ -26,10 +26,9 @@ if __name__ == '__main__':
     output = args['output']
 
     # define output path
-    output_name = output.split('.')[0]
-    output_path = f'./results/{output_name}'
-    output_file_tmp = f'{output_path}_tmp.mp4'
-    output_file_final = f'{output_path}.mp4'
+    output_base = os.path.join('results', os.path.splitext(output)[0])
+    output_file_tmp = f'{output_base}_tmp.mp4'
+    output_file_final = f'{output_base}.mp4'
 
     # check that either extract_from or vector_file is given
     if not ((extract_from == '') ^ (vector_file == '')):

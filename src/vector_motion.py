@@ -41,6 +41,11 @@ if __name__ == '__main__':
     script_path = args['script_path']
     script_type = script_path[-2:]
 
+    # define output path
+    output_base = os.path.join('results', os.path.splitext(output_video)[0])
+    output_file_tmp = f'{output_base}_tmp.mp4'
+    output_file_final = f'{output_base}.mp4'
+
     if script_type == 'py':
         try:
             # import the function responsible for moshing from the specified script
@@ -48,7 +53,7 @@ if __name__ == '__main__':
 
             # method = '' specifies to just copy the new vectors over to the original video
             apply_vectors(func(get_vectors(input_video)),
-                          input_video, output_video, method='')
+                          input_video, output_file_tmp, method='')
         except Exception as e:
             # TODO: proper error handling
             print(
@@ -59,5 +64,12 @@ if __name__ == '__main__':
                         ' -vcodec mpeg2video -f rawvideo -y tmp.mpg', shell=True)
 
         subprocess.call(
-            f'./bin/ffedit -i tmp.mpg -f mv -s {script_path} -o {output_video}', shell=True)
+            f'./bin/ffedit -i tmp.mpg -f mv -s {script_path} -o {output_file_tmp}', shell=True)
         os.remove('tmp.mpg')
+
+    # step 3: convert mpg to mp4
+    subprocess.call(
+        f'ffmpeg -i {output_file_tmp} {output_file_final}', shell=True)
+
+    # remove temporary file
+    os.remove(output_file_tmp)
