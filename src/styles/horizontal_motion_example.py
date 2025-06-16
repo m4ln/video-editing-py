@@ -1,6 +1,23 @@
 import random
 
 
+def mosh_frames(frames):
+    for frame in frames:
+        if not frame:
+            continue
+
+        for row in frame:
+            for col in row:
+                # only apply the effect randomly often enough
+                if random.random() < 0.07:
+                    # Randomly set horizontal component to 0 for vertical motion only
+                    col[0] = 0
+                    # Randomly set vertical component to 0 for horizontal motion only
+                    # col[1] = 0
+
+    return frames
+
+
 def mosh_frames2(frames):
     for frame in frames:
         if not frame:
@@ -20,7 +37,7 @@ def mosh_frames2(frames):
     return frames
 
 
-def mosh_frames(frames):
+def mosh_frames3(frames):
     for frame in frames:
         if not frame:
             continue
