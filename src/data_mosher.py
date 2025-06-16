@@ -35,6 +35,15 @@ class DataMosher:
             shell=True
         )
 
+    def get_fps(self):
+        cmd = [
+            "ffprobe", "-v", "0", "-of", "csv=p=0",
+            "-select_streams", "v:0", "-show_entries", "stream=avg_frame_rate", self.video_path
+        ]
+        output = subprocess.check_output(cmd).decode().strip()
+        num, denom = map(int, output.split('/'))
+        return num / denom if denom != 0 else 0
+
     def open_files(self):
         self.in_file = open(self.input_avi, 'rb')
         self.out_file = open(self.output_avi, 'wb')
@@ -171,6 +180,13 @@ class DataMosher:
         self.export_video()
         self.cleanup()
 
+    def process_video(self):
+        if len(self.start_frames) == 1 and len(self.end_frames) == 1:
+            self.process_segment(self.start_frames[0], self.end_frames[0], os.path.join(
+                self.results_dir, f"{self.save_path}_moshed.mp4"))
+        else:
+            self.process_all_ranges()
+
     def export_video(self):
         subprocess.call(
             f'ffmpeg -loglevel error -y -i {self.output_avi} -crf 18 -pix_fmt yuv420p -vcodec libx264 -acodec aac -b 10000k -r {self.fps} {self.output_video}',
@@ -209,16 +225,22 @@ class DataMosher:
 
 
 def main():
+    def_video = 'td_export.mov'
+    def_start_frames = [2]
+    def_end_frames = [-1]
+    def_fps = 30
+    def_out = def_video.split('.')[0]
+
     parser = argparse.ArgumentParser()
     parser.add_argument('--video', type=str,
-                        default='hand.mov', help='File to be moshed')
+                        default=def_video, help='File to be moshed')
     parser.add_argument('--start_frames', nargs='+', type=int,
-                        required=True, help='List of start frames')
+                        required=False, default=def_start_frames, help='List of start frames (default: [2])')
     parser.add_argument('--end_frames', nargs='+', type=int,
-                        required=True, help='List of end frames')
-    parser.add_argument('--fps', '-f', default=30, type=int,
+                        required=False, default=def_end_frames, help='List of end frames (default: [-1])')
+    parser.add_argument('--fps', '-f', default=def_fps, type=int,
                         help='fps to convert initial video to')
-    parser.add_argument('--save_path', type=str, default='out',
+    parser.add_argument('--save_path', type=str, default=def_out,
                         help="Base path to save processed video.")
     parser.add_argument('--delta', '-d', default=0, type=int,
                         help='number of delta frames to repeat')
@@ -236,11 +258,11 @@ def main():
         save_path=args.save_path,
         delta=args.delta
     )
-    if len(args.start_frames) == 1 and len(args.end_frames) == 1:
-        mosher.process_segment(args.start_frames[0], args.end_frames[0], os.path.join(
-            mosher.results_dir, f"{args.save_path}_moshed.mp4"))
-    else:
-        mosher.process_all_ranges()
+    fps = mosher.get_fps()  # Ensure the video FPS is set correctly
+    print(f"Video FPS: {fps}")
+
+    # data moshing
+    mosher.process_video()
 
     # print number of total frames
     n_frames = mosher.n_video_frames
