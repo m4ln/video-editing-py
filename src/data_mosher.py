@@ -226,11 +226,15 @@ class DataMosher:
 
 
 # helper functions
-# write a function that loads a video and displays it with frame counts
-# it also allows to pause the video and resume it with a key press
-
-
 def display_video_with_frame_counts(video_path):
+    """
+    Displays a video with frame counts overlayed on each frame.
+    Press 'q' to quit, 'p' to pause, 'a' to go back one frame, and 'd' to go forward one frame.
+
+    Args:
+        video_path (str): Path to the video file.
+    """
+
     cap = cv2.VideoCapture(video_path)
     if not cap.isOpened():
         print("Error: Could not open video.")
@@ -304,7 +308,7 @@ def main():
     )
 
     # display video with frame counts
-    display_video_with_frame_counts(mosher.video_path)
+    # display_video_with_frame_counts(mosher.video_path)
 
     # fps check
     print(f"Video FPS: {mosher.get_fps()}")
