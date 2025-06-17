@@ -72,17 +72,17 @@ class DataMosher:
         print(f"Final video saved to {self.final_output}")
 
     def process_video(self):
-        def in_any_range(idx):
+        def in_any_range(idx, ranges):
             return any(start <= idx < end for start, end in ranges)
 
         def write_frame(frame):
             self.out_file.write(frame_start + frame)
 
-        def mosh_delta_repeat(frames, n_repeat):
+        def mosh_delta_repeat(frames, n_repeat, ranges):
             repeat_frames = []
             repeat_index = 0
             for idx, frame in enumerate(frames):
-                if not in_any_range(idx):
+                if not in_any_range(idx, ranges):
                     write_frame(frame)
                     continue
                 if (frame[5:8] != iframe and frame[5:8] != pframe):
@@ -97,9 +97,9 @@ class DataMosher:
                 else:
                     write_frame(frame)
 
-        def mosh_iframe_removal(frames):
+        def mosh_iframe_removal(frames, ranges):
             for idx, frame in enumerate(frames):
-                if in_any_range(idx) and frame[5:8] == iframe:
+                if in_any_range(idx, ranges) and frame[5:8] == iframe:
                     continue  # Remove I-frames in the specified ranges
                 write_frame(frame)
 
@@ -137,9 +137,9 @@ class DataMosher:
         print('Processing ranges:', ranges)
 
         if self.delta:
-            mosh_delta_repeat(frames, self.delta)
+            mosh_delta_repeat(frames, self.delta, ranges)
         else:
-            mosh_iframe_removal(frames)
+            mosh_iframe_removal(frames, ranges)
 
         self.out_file.close()
 
