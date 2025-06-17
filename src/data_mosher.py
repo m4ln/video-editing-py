@@ -59,7 +59,7 @@ class DataMosher:
         if os.path.exists(self.output_avi):
             os.remove(self.output_avi)
 
-    def process_all_ranges(self):
+    def process_video(self):
         def in_any_range(idx):
             return any(start <= idx < end for start, end in ranges)
 
@@ -91,6 +91,13 @@ class DataMosher:
                     continue  # Remove I-frames in the specified ranges
                 write_frame(frame)
 
+        # check if start_frames and end_frames are provided and same length
+        if not self.start_frames or not self.end_frames:
+            raise ValueError("start_frames and end_frames must be provided.")
+        if len(self.start_frames) != len(self.end_frames):
+            raise ValueError(
+                "start_frames and end_frames must have the same length.")
+
         self.convert_to_avi()
         self.open_files()
         in_file_bytes = self.in_file.read()
@@ -104,8 +111,18 @@ class DataMosher:
         iframe = bytes.fromhex('0001B0')
         pframe = bytes.fromhex('0001B6')
 
+        # get number of video frames
+        self.n_video_frames = len(
+            [frame for frame in frames if frame[5:8] == iframe or frame[5:8] == pframe])
+
+        # if the end_frames are negative, set them to the total number of frames
+        if any(end < 0 for end in self.end_frames):
+            self.end_frames = [self.n_video_frames if end <
+                               0 else end for end in self.end_frames]
+
         # Prepare a list of (start, end) tuples
         ranges = list(zip(self.start_frames, self.end_frames))
+        print('Processing ranges:', ranges)
 
         if self.delta:
             mosh_delta_repeat(frames, self.delta)
@@ -125,68 +142,6 @@ class DataMosher:
         os.remove(output_avi)
         self.cleanup()
         print(f"Final video saved to {final_output}")
-
-    def process_segment(self, start_frame, end_frame, output_video):
-        def write_frame(frame):
-            self.out_file.write(frame_start + frame)
-
-        def mosh_iframe_removal():
-            for index, frame in enumerate(frames):
-                if index < self.start_frame or end_frame < index or frame[5:8] != iframe:
-                    write_frame(frame)
-
-        def mosh_delta_repeat(n_repeat):
-            if n_repeat > end_frame - self.start_frame:
-                print('not enough frames to repeat')
-                self.cleanup()
-                exit(0)
-            repeat_frames = []
-            repeat_index = 0
-            for index, frame in enumerate(frames):
-                if (frame[5:8] != iframe and frame[5:8] != pframe) or not self.start_frame <= index < end_frame:
-                    write_frame(frame)
-                    continue
-                if len(repeat_frames) < n_repeat and frame[5:8] != iframe:
-                    repeat_frames.append(frame)
-                    write_frame(frame)
-                elif len(repeat_frames) == n_repeat:
-                    write_frame(repeat_frames[repeat_index])
-                    repeat_index = (repeat_index + 1) % n_repeat
-                else:
-                    write_frame(frame)
-
-        self.start_frame = start_frame
-        self.end_frame = end_frame
-        self.output_video = output_video
-        self.convert_to_avi()
-        self.open_files()
-        in_file_bytes = self.in_file.read()
-        frame_start = bytes.fromhex('30306463')
-        frames = in_file_bytes.split(frame_start)
-        self.out_file.write(frames[0])
-        frames = frames[1:]
-
-        iframe = bytes.fromhex('0001B0')
-        pframe = bytes.fromhex('0001B6')
-
-        self.n_video_frames = len(
-            [frame for frame in frames if frame[5:8] == iframe or frame[5:8] == pframe])
-        end_frame = self.end_frame if self.end_frame >= 0 else self.n_video_frames
-
-        if self.delta:
-            mosh_delta_repeat(self.delta)
-        else:
-            mosh_iframe_removal()
-
-        self.export_video()
-        self.cleanup()
-
-    def process_video(self):
-        if len(self.start_frames) == 1 and len(self.end_frames) == 1:
-            self.process_segment(self.start_frames[0], self.end_frames[0], os.path.join(
-                self.results_dir, f"{self.save_path}_moshed.mp4"))
-        else:
-            self.process_all_ranges()
 
     def export_video(self):
         subprocess.call(
@@ -245,11 +200,11 @@ def display_video_with_frame_counts(video_path):
 
 def main():
     def_video = 'dan_0614.mov'
-    def_start_frames = [2, 100]
-    def_end_frames = [50, 200]
+    def_start_frames = [2, 200]
+    def_end_frames = [100, 300]
     def_fps = 30
     def_out = def_video.split('.')[0]
-    def_delta = 0
+    def_delta = 30
 
     parser = argparse.ArgumentParser()
     parser.add_argument('--video', type=str,
