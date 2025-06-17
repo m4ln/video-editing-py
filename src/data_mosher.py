@@ -194,38 +194,10 @@ class DataMosher:
             shell=True
         )
 
-    def process_and_concat(self):
-        temp_videos = []
-        for idx, (start, end) in enumerate(zip(self.start_frames, self.end_frames)):
-            temp_output = os.path.join(
-                self.results_dir, f"temp_mosh_{start}_{end}.mp4")
-            temp_videos.append(temp_output)
-            self.process_segment(start, end, temp_output)
-
-        # Create a file list for ffmpeg concat
-        concat_list_path = os.path.join(self.results_dir, "concat_list.txt")
-        with open(concat_list_path, "w") as f:
-            for video in temp_videos:
-                f.write(f"file '{video}'\n")
-
-        final_output = os.path.join(
-            self.results_dir, f"{self.save_path}_moshed.mp4")
-        subprocess.call(
-            f"ffmpeg -loglevel error -y -f concat -safe 0 -i {concat_list_path} -c copy {final_output}",
-            shell=True
-        )
-
-        # Cleanup temp files
-        for video in temp_videos:
-            if os.path.exists(video):
-                os.remove(video)
-        if os.path.exists(concat_list_path):
-            os.remove(concat_list_path)
-
-        print(f"Final video saved to {final_output}")
-
 
 # helper functions
+
+
 def display_video_with_frame_counts(video_path):
     """
     Displays a video with frame counts overlayed on each frame.
@@ -273,11 +245,11 @@ def display_video_with_frame_counts(video_path):
 
 def main():
     def_video = 'dan_0614.mov'
-    def_start_frames = [2]
-    def_end_frames = [150]
+    def_start_frames = [2, 100]
+    def_end_frames = [50, 200]
     def_fps = 30
     def_out = def_video.split('.')[0]
-    def_delta = 50
+    def_delta = 0
 
     parser = argparse.ArgumentParser()
     parser.add_argument('--video', type=str,
