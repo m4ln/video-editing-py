@@ -59,6 +59,18 @@ class DataMosher:
         if os.path.exists(self.output_avi):
             os.remove(self.output_avi)
 
+    def export_video(self):
+        output_avi = os.path.join(
+            self.results_dir, f"{self.save_path}_moshed.avi")
+        self.final_output = os.path.join(
+            self.results_dir, f"{self.save_path}_moshed.mp4")
+        subprocess.call(
+            f'ffmpeg -loglevel error -y -i {output_avi} -crf 18 -pix_fmt yuv420p -vcodec libx264 -acodec aac -b 10000k -r {self.fps} {self.final_output}',
+            shell=True
+        )
+        os.remove(output_avi)
+        print(f"Final video saved to {self.final_output}")
+
     def process_video(self):
         def in_any_range(idx):
             return any(start <= idx < end for start, end in ranges)
@@ -130,24 +142,11 @@ class DataMosher:
             mosh_iframe_removal(frames)
 
         self.out_file.close()
-        # Export the final video
-        output_avi = os.path.join(
-            self.results_dir, f"{self.save_path}_moshed.avi")
-        final_output = os.path.join(
-            self.results_dir, f"{self.save_path}_moshed.mp4")
-        subprocess.call(
-            f'ffmpeg -loglevel error -y -i {output_avi} -crf 18 -pix_fmt yuv420p -vcodec libx264 -acodec aac -b 10000k -r {self.fps} {final_output}',
-            shell=True
-        )
-        os.remove(output_avi)
-        self.cleanup()
-        print(f"Final video saved to {final_output}")
 
-    def export_video(self):
-        subprocess.call(
-            f'ffmpeg -loglevel error -y -i {self.output_avi} -crf 18 -pix_fmt yuv420p -vcodec libx264 -acodec aac -b 10000k -r {self.fps} {self.output_video}',
-            shell=True
-        )
+        # Export the final video
+        self.export_video()
+        # Clean up temporary files
+        self.cleanup()
 
 
 # helper functions
