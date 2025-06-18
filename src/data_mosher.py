@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 
-import cv2
 import os
-import argparse
 import subprocess
 
 
@@ -149,56 +147,10 @@ class DataMosher:
         self.cleanup()
 
 
-# helper functions
-
-
-def display_video_with_frame_counts(video_path):
-    """
-    Displays a video with frame counts overlayed on each frame.
-    Press 'q' to quit, 'p' to pause, 'a' to go back one frame, and 'd' to go forward one frame.
-
-    Args:
-        video_path (str): Path to the video file.
-    """
-
-    cap = cv2.VideoCapture(video_path)
-    if not cap.isOpened():
-        print("Error: Could not open video.")
-        return
-
-    frame_count = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
-    fps = cap.get(cv2.CAP_PROP_FPS)
-    print(f"Total frames: {frame_count}, FPS: {fps}")
-
-    while True:
-        ret, frame = cap.read()
-        if not ret:
-            break
-
-        current_frame = int(cap.get(cv2.CAP_PROP_POS_FRAMES))
-        cv2.putText(frame, f'Frame: {current_frame}/{frame_count}', (10, 30),
-                    cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
-
-        cv2.imshow('Video', frame)
-
-        key = cv2.waitKey(int(1000 / fps)) & 0xFF
-        if key == ord('q'):  # Press 'q' to quit
-            break
-        elif key == ord('p'):  # Press 'p' to pause
-            cv2.waitKey(-1)  # Wait indefinitely until any key is pressed
-        elif key == ord('a'):  # Press 'a' to go back one frame
-            pos = max(0, int(cap.get(cv2.CAP_PROP_POS_FRAMES)) - 2)
-            cap.set(cv2.CAP_PROP_POS_FRAMES, pos)
-        elif key == ord('d'):  # Press 'd' to go forward one frame
-            pos = min(frame_count - 1, int(cap.get(cv2.CAP_PROP_POS_FRAMES)))
-            cap.set(cv2.CAP_PROP_POS_FRAMES, pos)
-
-    cap.release()
-    cv2.destroyAllWindows()
-
-
 def main():
-    def_video = 'dan_0614.mov'
+    import argparse
+
+    def_video = 'dance_0614_cropped_0_1000.mp4'
     def_start_frames = [2, 200]
     def_end_frames = [100, 300]
     def_fps = 30
@@ -232,9 +184,6 @@ def main():
         save_path=args.save_path,
         delta=args.delta
     )
-
-    # display video with frame counts
-    # display_video_with_frame_counts(mosher.video_path)
 
     # fps check
     print(f"Video FPS: {mosher.get_fps()}")
