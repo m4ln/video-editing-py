@@ -2,9 +2,10 @@
 
 import cv2
 import os
+import subprocess
 
 
-def display_video_with_frame_counts(video_path):
+def display_video_with_frame_counts(video_path, fps=30):
     """
     Displays a video with frame counts overlayed on each frame.
     Press 'q' to quit, 'p' to pause, 'a' to go back one frame, and 'd' to go forward one frame.
@@ -19,8 +20,8 @@ def display_video_with_frame_counts(video_path):
         return
 
     frame_count = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
-    fps = cap.get(cv2.CAP_PROP_FPS)
-    print(f"Total frames: {frame_count}, FPS: {fps}")
+    # fps = cap.get(cv2.CAP_PROP_FPS)
+    # print(f"Total frames: {frame_count}, FPS: {fps}")
 
     while True:
         ret, frame = cap.read()
@@ -60,6 +61,10 @@ def crop_video(video_path, start_frame, end_frame):
         print("Error: Could not open video.")
         return
 
+    frame_count = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+    fps = cap.get(cv2.CAP_PROP_FPS)
+    print(f"Total frames: {frame_count}, FPS: {fps}")
+
     # Set the start frame
     cap.set(cv2.CAP_PROP_POS_FRAMES, start_frame)
 
@@ -80,12 +85,26 @@ def crop_video(video_path, start_frame, end_frame):
     print(f"Video cropped and saved as: {out_filename}")
 
 
+def export_video_with_frame_counts(video_path):
+    base, ext = os.path.splitext(video_path)
+    out_filename = f"{base}_with_counts{ext}"
+    if not os.path.exists(video_path):
+        raise FileNotFoundError(f"Video file {video_path} does not exist.")
+
+    subprocess.call(
+        f'ffmpeg -i {video_path} -vf "drawtext=fontfile=Arial.ttf: text=%{{n}}: x=(w-tw)/2: y=h-(2*lh): fontcolor=white: box=1: boxcolor=0x00000099: fontsize=72" {out_filename}', shell=True)
+
+
 if __name__ == "__main__":
-    video = 'dan_0614.mov'  # Example video file name
-    video_path = os.path.join(os.path.dirname(__file__), '..', 'data', video)
+    video = 'dan_0614_cropped_0_1000.mov'  # Example video file name
+    video_path = os.path.join(os.path.dirname(
+        __file__), '..', 'data', 'dance', video)
 
     # display video with frame counts
-    display_video_with_frame_counts(video_path)
+    # display_video_with_frame_counts(video_path, fps=30)
 
     # crop video
-    crop_video(video_path, 0, 1000)
+    # crop_video(video_path, 1000, 2000)
+
+    # export video with frame counts
+    export_video_with_frame_counts(video_path)
