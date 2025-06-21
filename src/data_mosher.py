@@ -168,17 +168,6 @@ def define_start_end_frame_ranges(def_video_path, step, offset, start_frame=2, e
 def main():
     import argparse
 
-    # data directory
-    def_fps = 30
-    data_dir = os.path.join(os.path.dirname(__file__), '..', 'data')
-    def_video = 'dan_0614.mov'
-    def_out = f"{def_video.split('.')[0]}_{def_fps}"
-    def_start_frames = [2]
-    def_end_frames = [-1]
-    def_delta = 0
-    step = 25   # set to zero if you want to use default start and end frames
-    offset = 10  # set to zero if you want to use default start and end frames
-
     def_video_path = os.path.join(data_dir, def_video)
 
     # Define start and end frames based on the video
@@ -236,5 +225,16 @@ if __name__ == "__main__":
 
     # == Default values ===
 
+    def_fps = 30
+    data_dir = os.path.join(os.path.dirname(__file__), '..', 'data')
+    def_video = 'dan_0614.mov'
+    def_out = f"{def_video.split('.')[0]}_{def_fps}"
+    def_start_frames = [2]
+    def_end_frames = [-1]
+    def_delta = 0
+    step = 50  # set to zero if you want to use default start and end frames
+    offset = 10  # set to zero if you want to use default start and end frames
+
     # == End of default values ===
+
     main()
