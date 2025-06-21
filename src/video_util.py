@@ -95,6 +95,25 @@ def export_video_with_frame_counts(video_path):
         f'ffmpeg -i {video_path} -vf "drawtext=fontfile=Arial.ttf: text=%{{n}}: x=(w-tw)/2: y=h-(2*lh): fontcolor=white: box=1: boxcolor=0x00000099: fontsize=72" {out_filename}', shell=True)
 
 
+def get_number_of_frames(video_path):
+    """
+    Returns the total number of frames in the video.
+
+    Args:
+        video_path (str): Path to the video file.
+
+    Returns:
+        int: Total number of frames in the video.
+    """
+    cap = cv2.VideoCapture(video_path)
+    if not cap.isOpened():
+        raise ValueError(f"Could not open video file: {video_path}")
+
+    frame_count = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+    cap.release()
+    return frame_count
+
+
 if __name__ == "__main__":
     video = 'dan_0614_cropped_0_1000.mov'  # Example video file name
     video_path = os.path.join(os.path.dirname(
