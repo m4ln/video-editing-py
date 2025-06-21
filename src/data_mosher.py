@@ -5,16 +5,14 @@ import subprocess
 
 
 class DataMosher:
-    def __init__(self, video, start_frames, end_frames, fps, save_path, delta):
-        self.video = video
+    def __init__(self, video_path, start_frames, end_frames, fps, save_path, delta):
+        self.video_path = video_path
         self.start_frames = start_frames
         self.end_frames = end_frames
         self.fps = fps
         self.save_path = save_path
         self.delta = delta
 
-        self.video_path = os.path.join(
-            os.path.dirname(__file__), '..', 'data', self.video)
         if not os.path.exists(self.video_path):
             raise FileNotFoundError(
                 f"Video file {self.video_path} does not exist in the data directory.")
@@ -147,19 +145,57 @@ class DataMosher:
         self.cleanup()
 
 
+def define_start_end_frame_ranges(def_video_path, step, offset, start_frame=2, end_frame=-1):
+    from video_util import get_number_of_frames
+
+    n_frames = get_number_of_frames(def_video_path)
+
+    start = start_frame
+    end = n_frames if end_frame == -1 else end_frame
+    step = step if step >= 0 else 10  # Default step size if not provided
+    offset = offset if offset >= 0 else 0  # Default offset if not provided
+
+    if end <= start:
+        raise ValueError("Invalid start or end values.")
+
+    start_frames = [start + i * (step + offset)
+                    for i in range((end - start) // (step + offset))]
+    end_frames = [s + step for s in start_frames]
+
+    return start_frames, end_frames
+
+
 def main():
     import argparse
 
-    def_video = 'dance_0614_cropped_0_1000.mp4'
-    def_start_frames = [2, 200]
-    def_end_frames = [100, 300]
+    # data directory
     def_fps = 30
-    def_out = def_video.split('.')[0]
-    def_delta = 30
+    data_dir = os.path.join(os.path.dirname(__file__), '..', 'data')
+    def_video = 'dan_0614.mov'
+    def_out = f"{def_video.split('.')[0]}_{def_fps}"
+    def_start_frames = [2]
+    def_end_frames = [-1]
+    def_delta = 0
+    step = 25   # set to zero if you want to use default start and end frames
+    offset = 10  # set to zero if you want to use default start and end frames
+
+    def_video_path = os.path.join(data_dir, def_video)
+
+    # Define start and end frames based on the video
+    if not step <= 0 and not offset <= 0:
+        def_start_frames, def_end_frames = define_start_end_frame_ranges(
+            def_video_path, step=step, offset=offset, start_frame=2, end_frame=-1)
+        def_out = f"{def_video.split('.')[0]}_{def_fps}_{step}_{offset}"
+
+        print(
+            f"Using step {step} and offset {offset} to define start and end frames.")
+    else:
+        print(
+            f"Using default start frames {def_start_frames} and end frames {def_end_frames}.")
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('--video', type=str,
-                        default=def_video, help='File to be moshed')
+    parser.add_argument('--video_path', type=str,
+                        default=def_video_path, help='Path to video to be moshed')
     parser.add_argument('--start_frames', nargs='+', type=int,
                         required=False, default=def_start_frames, help='List of start frames (default: [2])')
     parser.add_argument('--end_frames', nargs='+', type=int,
@@ -177,7 +213,7 @@ def main():
             "start_frames and end_frames must have the same length.")
 
     mosher = DataMosher(
-        video=args.video,
+        video_path=args.video_path,
         start_frames=args.start_frames,
         end_frames=args.end_frames,
         fps=args.fps,
@@ -197,4 +233,8 @@ def main():
 
 
 if __name__ == "__main__":
+
+    # == Default values ===
+
+    # == End of default values ===
     main()
